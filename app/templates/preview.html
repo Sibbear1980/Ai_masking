@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h1 class="h5 mb-0">Результат для {{ original_filename }}</h1>
+        <div class="text-muted small">Стиль маски: {{ mask_style }}</div>
+    </div>
+    <a class="btn btn-success" href="/download/{{ file_id }}">Скачать маскированный файл</a>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="card shadow-sm">
+            <div class="card-body preview-area">
+                <div class="preview-text" aria-label="Исходный текст">
+                    {{ highlighted_text | safe }}
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card shadow-sm mb-3">
+            <div class="card-body">
+                <h2 class="h6">Легенда</h2>
+                <ul class="list-unstyled small">
+                    <li><span class="legend entity-person"></span> PERSON</li>
+                    <li><span class="legend entity-company"></span> COMPANY</li>
+                    <li><span class="legend entity-project"></span> PROJECT</li>
+                    <li><span class="legend entity-rekvizit"></span> REKVIZIT</li>
+                </ul>
+            </div>
+        </div>
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h2 class="h6">Найденные сущности</h2>
+                {% if entities %}
+                    <ul class="list-group list-group-flush">
+                        {% for entity in entities %}
+                            <li class="list-group-item d-flex justify-content-between align-items-start">
+                                <div>
+                                    <div class="fw-semibold">{{ entity.type }}</div>
+                                    <div class="text-muted small">{{ entity.text }}</div>
+                                </div>
+                                <span class="badge bg-secondary"> {{ entity.start }}–{{ entity.end }} </span>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <div class="text-muted small">Сущности не найдены или сервис временно недоступен.</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+<div class="card shadow-sm mt-4">
+    <div class="card-body">
+        <h2 class="h6">Логи запросов к модели</h2>
+        {% if gpt_logs %}
+            <div class="table-responsive">
+                <table class="table table-sm align-middle mb-0">
+                    <thead>
+                    <tr>
+                        <th>Тип</th>
+                        <th>Offset</th>
+                        <th>Статус</th>
+                        <th>Длина</th>
+                        <th>Тело</th>
+                    </tr>
+                    </thead>
+                    <tbody class="small">
+                    {% for log in gpt_logs %}
+                        <tr>
+                            <td>{{ log.direction }}</td>
+                            <td>{{ log.offset if 'offset' in log else '-' }}</td>
+                            <td>
+                                {% if log.direction == 'response' %}{{ log.status }}{% elif log.direction == 'error' %}ошибка{% else %}-{% endif %}
+                            </td>
+                            <td>{{ log.length if 'length' in log else '-' }}</td>
+                            <td><pre class="mb-0">{{ log.body if 'body' in log else log.error }}</pre></td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-muted small">Логи пусты.</div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
